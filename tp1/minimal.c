@@ -14,7 +14,28 @@ static const unsigned int BIT_PER_PIXEL = 32;
 /* Nombre minimal de millisecondes separant le rendu de deux images */
 static const Uint32 FRAMERATE_MILLISECONDS = 1000 / 60;
 
+/* Couleurs de dessins possibles */
+static const int COULEURS[][3] = {
+    {0, 0, 0},
+    {100, 100, 100},
+    {206, 206, 206},
+    {239, 239, 239},
+    {255, 255, 255},
+    {173, 57, 14},
+    {30, 127, 203},
+    {127, 221, 76},
+    {167, 103, 38},
+    {136, 77, 167},
+    {230, 126, 48}
+};
+
+/* Nombre de couleurs */
+static const unsigned int NB_COULEURS = sizeof(COULEURS) / 3;
+
 int main(int argc, char** argv) {
+
+    int couleurActu = 1; /* numéro de la couleur par defaut */
+    char mode = 'p'; /* Mode de dessin ( p = points, l = lignes, t = triangle, c = couleur (menu) */
 
     /* Initialisation de la SDL */
     if(-1 == SDL_Init(SDL_INIT_VIDEO)) {
@@ -36,6 +57,7 @@ int main(int argc, char** argv) {
 
     /* Placer ici le code de dessin */
     glClear(GL_COLOR_BUFFER_BIT);
+
 
     /* Boucle d'affichage */
     int loop = 1;
@@ -92,14 +114,32 @@ int main(int argc, char** argv) {
                     break;
 
                 /* Touche clavier */
-                case SDL_KEYDOWN:
-                    printf("touche pressée (code = %d)\n", e.key.keysym.sym);
+                case SDL_KEYUP:
+                    /* printf("touche pressée (code = %d)\n", e.key.keysym.sym); */
 
-                    if (e.key.keysym.sym=='q'){
-                         loop=0;
+                    switch(e.key.keysym.sym) {
+                        case SDLK_p:
+                            mode = 'p';
+                            break;
+                        case SDLK_l:
+                            mode = 'l';
+                            break;
+                        case SDLK_t:
+                            mode = 't';
+                            break;
+                        case SDLK_q:
+                            loop=0;
+                            break;
+                        default:
+                            break;
                     }
                     break;
 
+                case SDL_KEYDOWN:
+                    if(e.key.keysym.sym == SDLK_SPACE) {
+                        mode = 'c';
+                    }
+                    break;
                 default:
                     break;
             }
