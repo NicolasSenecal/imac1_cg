@@ -22,40 +22,33 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    /* Ouverture d'une fenêtre et création d'un contexte OpenGL */
+    /* Désactivation du double buffering */
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
 
+    /* Ouverture d'une fenêtre et création d'un contexte OpenGL */
     if(NULL == SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE )) {
         fprintf(stderr, "Impossible d'ouvrir la fenetre. Fin du programme.\n");
         return EXIT_FAILURE;
     }
 
-
-
     /* Titre de la fenêtre */
     SDL_WM_SetCaption("Ceci est un Titre", NULL);
+
+    /* Placer ici le code de dessin */
+    glClear(GL_COLOR_BUFFER_BIT);
 
     /* Boucle d'affichage */
     int loop = 1;
     while(loop) {
 
-
-
-
         /* Récupération du temps au début de la boucle */
         Uint32 startTime = SDL_GetTicks();
-
-        /* Placer ici le code de dessin */
-         glClear(GL_COLOR_BUFFER_BIT);
 
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
         SDL_GL_SwapBuffers();
 
         /* Boucle traitant les evenements */
         SDL_Event e;
-
-
-
-
         while(SDL_PollEvent(&e)) {
 
 
@@ -75,22 +68,27 @@ int main(int argc, char** argv) {
                     glMatrixMode(GL_PROJECTION);
                     glLoadIdentity();
                     gluOrtho2D(-1., 1., -1., 1.);
-                    SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE );
+                    SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE ); /* FIX ME - Écran en partie noir pendant le redimensionnement */
                     break;
-
 
 
                 /* Clic souris */
                 case SDL_MOUSEBUTTONUP:
-
-                  glClearColor((e.button.x/255)%255,((e.button.y/255)%255),0,1);
+                    /*
+                    glClearColor((e.button.x/255)%255,((e.button.y/255)%255),0,1);
+                    */
+                    glBegin(GL_POINTS);
+                        glColor3ub(255, 255, 255);
+                        glVertex2f(-1 + 2. * e.button.x / WINDOW_WIDTH, - (-1 + 2. * e.button.y / WINDOW_HEIGHT));
+                    glEnd();
+                    SDL_GL_SwapBuffers();
                     break;
 
                 /* Mouvement de souris */
                 case SDL_MOUSEMOTION:
-
+                    /*
                     glClearColor((e.button.x%255)/255.0,((e.button.y%255)/255.0),0,1);
-
+                    */
                     break;
 
                 /* Touche clavier */
