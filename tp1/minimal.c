@@ -52,9 +52,13 @@ void selectColorView() {
     glEnd();
 }
 
+void drawView() {
+
+}
+
 int main(int argc, char** argv) {
 
-    int couleurActu = 5; /* numéro de la couleur par defaut */
+    int couleurActu = 4; /* numéro de la couleur par defaut */
     char mode = 0; /* Mode de dessin = 0, choix couleur =1 */
 
     /* Initialisation de la SDL */
@@ -73,9 +77,10 @@ int main(int argc, char** argv) {
     }
 
     /* Titre de la fenêtre */
-    SDL_WM_SetCaption("Ceci est un Titre", NULL);
+    SDL_WM_SetCaption("Paint", NULL);
 
-    /* Placer ici le code de dessin */
+    glClearColor(1, 1, 1, 1);
+    /* Code de dessin */
     glClear(GL_COLOR_BUFFER_BIT);
 
 
@@ -92,7 +97,7 @@ int main(int argc, char** argv) {
         if (mode == 1) {
             selectColorView();
         } else {
-
+            drawView();
         }
 
         /* Boucle traitant les evenements */
@@ -127,10 +132,13 @@ int main(int argc, char** argv) {
                      */
 
                     if (mode == 1) {
-                        
+                        couleurActu = 2 * (int) (e.button.x / (WINDOW_WIDTH * 2 / NB_COULEURS));
+                        if (e.button.y >= WINDOW_HEIGHT/2){
+                            couleurActu++;
+                        }
                     } else {
                         glBegin(GL_POINTS);
-                        glColor3ub(255, 255, 255);
+                        glColor3ub(COULEURS[couleurActu][0], COULEURS[couleurActu][1], COULEURS[couleurActu][2]);
                         glVertex2f(-1 + 2. * e.button.x / WINDOW_WIDTH, -(-1 + 2. * e.button.y / WINDOW_HEIGHT));
                         glEnd();
                         SDL_GL_SwapBuffers();
@@ -148,18 +156,24 @@ int main(int argc, char** argv) {
                     /* Touche clavier */
                 case SDL_KEYUP:
                     /* printf("touche pressée (code = %d)\n", e.key.keysym.sym); */
-                    mode = 0;
-                    switch (e.key.keysym.sym) {
-                        case SDLK_p:
-                            break;
-                        case SDLK_l:
-                            break;
-                        case SDLK_t:
-                            break;
-                        case SDLK_q:
-                            break;
-                        default:
-                            break;
+                    if (e.key.keysym.sym == SDLK_SPACE) {
+                        mode = 0;
+                        glClearColor(1, 1, 1, 1);
+                        glClear(GL_COLOR_BUFFER_BIT);
+                    } else {
+                        switch (e.key.keysym.sym) {
+                            case SDLK_p:
+                                break;
+                            case SDLK_l:
+                                break;
+                            case SDLK_t:
+                                break;
+                            case SDLK_q:
+                                loop = 0;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     break;
 
