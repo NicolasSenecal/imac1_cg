@@ -37,6 +37,12 @@ typedef struct Point {
     struct Point* next; /* Point suivant à dessiner */
 } Point, *PointList;
 
+typedef struct Primitive {
+    GLenum primitiveType;
+    PointList points;
+    struct Primitive* next;
+} Primitive, *PrimitiveList;
+
 void selectColorView() {
     int i;
     glBegin(GL_QUADS);
@@ -61,7 +67,8 @@ void selectColorView() {
 Point* allocPoint(float x, float y, unsigned char r, unsigned char g, unsigned char b) {
     Point* point = (Point*) malloc(sizeof (point));
     if (!point) {
-        return NULL;
+        printf("Memory run out\n");
+        exit(1);
     }
     point->x = x;
     point->y = y;
@@ -72,6 +79,22 @@ Point* allocPoint(float x, float y, unsigned char r, unsigned char g, unsigned c
     return point;
 }
 
+Primitive* allocPrimitive(GLenum primitiveType) {
+    Primitive* primitive = (Primitive*) malloc(sizeof (primitive));
+    if (!primitive) {
+        printf("Memory run out\n");
+        exit(1);
+    }
+    primitive->primitiveType = primitiveType;
+    primitive->points = NULL;
+    primitive->next = NULL;
+    return primitive;
+}
+
+/*  
+ *  Ajoute un point au début de la liste
+ *  Les points seront ainsi trier par ordre d'apparition
+ */
 void addPointToList(Point* point, PointList* list) {
     if (*list != NULL) {
         addPointToList(point, &(*list)->next);
@@ -80,10 +103,41 @@ void addPointToList(Point* point, PointList* list) {
     }
 }
 
+/*  
+ *  Ajoute une primitive en fin de liste
+ *  Les primitives seront ainsi trier par ordre d'apparition (les plus récents "écrasent" les autres)
+ */
+void addPrimitive(Primitive* primitive, PrimitiveList* list) {
+    if (*list != NULL) {
+        addPrimitive(primitive, &(*list)->next);
+    } else {
+        *list = primitive;
+    }
+}
+
+/*
+ *  Renvoie la primitive courante (dernière de la liste)
+ */
+PrimitiveList findLastPrimitive(PrimitiveList list) {
+    while (list->next != NULL) {
+        list = list->next;
+    }
+    return list;
+}
+
 void drawPoints(PointList list) {
     while (list != NULL) {
         glColor3ub(list->r, list->g, list->b);
         glVertex2f(list->x, list->y);
+        list = list->next;
+    }
+}
+
+void drawPrimitives(PrimitiveList list) {
+    while (list != NULL) {
+        glBegin(list->primitiveType);
+        drawPoints(list->points);
+        glEnd();
         list = list->next;
     }
 }
@@ -96,10 +150,23 @@ void deletePoints(PointList* list) {
     }
 }
 
+void deletePrimitives(PrimitiveList* list) {
+    while (*list != NULL) {
+        Primitive* next = (*list)->next;
+        deletePoints(&(*list)->points);
+        free(*list);
+        *list = next;
+    }
+}
+
 int main(int argc, char** argv) {
 
     int couleurActu = 4; /* numéro de la couleur par defaut */
     char mode = 0; /* Mode de dessin = 0, choix couleur =1 */
+
+    PrimitiveList primitiveLst = NULL;
+    addPrimitive(allocPrimitive(GL_POINTS), &primitiveLst);
+    Point *tmpPoint = NULL;
 
     /* Initialisation de la SDL */
     if (-1 == SDL_Init(SDL_INIT_VIDEO)) {
@@ -119,26 +186,24 @@ int main(int argc, char** argv) {
     /* Titre de la fenêtre */
     SDL_WM_SetCaption("Paint", NULL);
 
-    glClearColor(1, 1, 1, 1);
-    /* Code de dessin */
-    glClear(GL_COLOR_BUFFER_BIT);
-
 
     /* Boucle d'affichage */
     int loop = 1;
     while (loop) {
-
         /* Récupération du temps au début de la boucle */
         Uint32 startTime = SDL_GetTicks();
 
-        /* Echange du front et du back buffer : mise à jour de la fenêtre */
-        SDL_GL_SwapBuffers();
+        glClearColor(1, 1, 1, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         if (mode == 1) {
             selectColorView();
         } else {
-
+            drawPrimitives(primitiveLst);
         }
+
+        /* Echange du front et du back buffer : mise à jour de la fenêtre */
+        SDL_GL_SwapBuffers();
 
         /* Boucle traitant les evenements */
         SDL_Event e;
@@ -177,11 +242,8 @@ int main(int argc, char** argv) {
                             couleurActu++;
                         }
                     } else {
-                        glBegin(GL_POINTS);
-                        glColor3ub(COULEURS[couleurActu][0], COULEURS[couleurActu][1], COULEURS[couleurActu][2]);
-                        glVertex2f(-1 + 2. * e.button.x / WINDOW_WIDTH, -(-1 + 2. * e.button.y / WINDOW_HEIGHT));
-                        glEnd();
-                        SDL_GL_SwapBuffers();
+                        tmpPoint = allocPoint(-1 + 2. * e.button.x / WINDOW_WIDTH, -(-1 + 2. * e.button.y / WINDOW_HEIGHT), COULEURS[couleurActu][0], COULEURS[couleurActu][1], COULEURS[couleurActu][2]);
+                        addPointToList(tmpPoint, &(findLastPrimitive(primitiveLst))->points);
                     }
 
                     break;
@@ -198,15 +260,19 @@ int main(int argc, char** argv) {
                     /* printf("touche pressée (code = %d)\n", e.key.keysym.sym); */
                     if (e.key.keysym.sym == SDLK_SPACE) {
                         mode = 0;
-                        glClearColor(1, 1, 1, 1);
-                        glClear(GL_COLOR_BUFFER_BIT);
                     } else {
                         switch (e.key.keysym.sym) {
                             case SDLK_p:
+                                addPrimitive(allocPrimitive(GL_POINTS), &primitiveLst);
                                 break;
                             case SDLK_l:
+                                addPrimitive(allocPrimitive(GL_LINES), &primitiveLst);
                                 break;
                             case SDLK_t:
+                                addPrimitive(allocPrimitive(GL_TRIANGLES), &primitiveLst);
+                                break;
+                            case SDLK_c:
+                                addPrimitive(allocPrimitive(GL_QUADS), &primitiveLst);
                                 break;
                             case SDLK_q:
                                 loop = 0;
@@ -235,6 +301,8 @@ int main(int argc, char** argv) {
             SDL_Delay(FRAMERATE_MILLISECONDS - elapsedTime);
         }
     }
+
+    deletePrimitives(&primitiveLst);
 
     /* Liberation des ressources associées à la SDL */
     SDL_Quit();
