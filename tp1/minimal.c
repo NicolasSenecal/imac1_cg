@@ -31,6 +31,12 @@ static const int COULEURS[][3] = {
 /* Nombre de couleurs */
 static const unsigned int NB_COULEURS = sizeof (COULEURS) / (3 * sizeof (int));
 
+typedef struct Point {
+    float x, y; /* Position 2D du point */
+    unsigned char r, g, b; /* Couleur du point */
+    struct Point* next; /* Point suivant à dessiner */
+} Point, *PointList;
+
 void selectColorView() {
     int i;
     glBegin(GL_QUADS);
@@ -52,8 +58,42 @@ void selectColorView() {
     glEnd();
 }
 
-void drawView() {
+Point* allocPoint(float x, float y, unsigned char r, unsigned char g, unsigned char b) {
+    Point* point = (Point*) malloc(sizeof (point));
+    if (!point) {
+        return NULL;
+    }
+    point->x = x;
+    point->y = y;
+    point->r = r;
+    point->g = g;
+    point->b = b;
+    point->next = NULL;
+    return point;
+}
 
+void addPointToList(Point* point, PointList* list) {
+    if (*list != NULL) {
+        addPointToList(point, &(*list)->next);
+    } else {
+        *list = point;
+    }
+}
+
+void drawPoints(PointList list) {
+    while (list != NULL) {
+        glColor3ub(list->r, list->g, list->b);
+        glVertex2f(list->x, list->y);
+        list = list->next;
+    }
+}
+
+void deletePoints(PointList* list) {
+    while (*list != NULL) {
+        Point* nextPoint = (*list)->next;
+        free(*list);
+        *list = nextPoint;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -97,7 +137,7 @@ int main(int argc, char** argv) {
         if (mode == 1) {
             selectColorView();
         } else {
-            drawView();
+
         }
 
         /* Boucle traitant les evenements */
@@ -133,7 +173,7 @@ int main(int argc, char** argv) {
 
                     if (mode == 1) {
                         couleurActu = 2 * (int) (e.button.x / (WINDOW_WIDTH * 2 / NB_COULEURS));
-                        if (e.button.y >= WINDOW_HEIGHT/2){
+                        if (e.button.y >= WINDOW_HEIGHT / 2) {
                             couleurActu++;
                         }
                     } else {
