@@ -3,6 +3,7 @@
 #include <GL/glu.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 /* Dimensions de la fenêtre */
 static unsigned int WINDOW_WIDTH = 800;
@@ -11,61 +12,62 @@ static unsigned int WINDOW_HEIGHT = 600;
 /* Nombre de bits par pixel de la fenêtre */
 static const unsigned int BIT_PER_PIXEL = 32;
 
+/* Nombre de polygones d'un cercle */
+static const unsigned int CERCLE_LIGNES = 50;
+
 /* Nombre minimal de millisecondes separant le rendu de deux images */
 static const Uint32 FRAMERATE_MILLISECONDS = 1000 / 60;
 
-typedef struct Point {
-    float x, y; /* Position 2D du point */
-    unsigned char r, g, b; /* Couleur du point */
-    struct Point* next; /* Point suivant à dessiner */
-} Point, *PointList;
-
-Point* allocPoint(float x, float y, unsigned char r, unsigned char g, unsigned char b) {
-    Point* point = (Point*) malloc(sizeof (point));
-    if (!point) {
-        printf("Memory run out\n");
-        exit(1);
-    }
-    point->x = x;
-    point->y = y;
-    point->r = r;
-    point->g = g;
-    point->b = b;
-    point->next = NULL;
-    return point;
-}
-
-void addPointToList(Point* point, PointList* list) {
-    if (*list != NULL) {
-        addPointToList(point, &(*list)->next);
+/*
+ contour : 0 = forme pleine, autre = taille du contour
+ */
+void drawSquare(int contour) {
+    if (contour == 0) {
+        glBegin(GL_QUADS);
     } else {
-        *list = point;
+        glLineWidth(contour);
+        glBegin(GL_LINE_STRIP);
     }
+    glColor3ub(0, 0, 255);
+    glVertex2f(-0.5, 0.5);
+    glVertex2f(0.5, 0.5);
+    glVertex2f(0.5, -0.5);
+    glVertex2f(-0.5, -0.5);
+    glVertex2f(-0.5, 0.5);
+    glEnd();
 }
 
-void drawPoints(PointList list) {
-    Point* firstPoint = list;
-    while (list != NULL) {
-        glColor3ub(list->r, list->g, list->b);
-        glVertex2f(list->x, list->y);
-        list = list->next;
-    }
-
-    glColor3ub(firstPoint->r, firstPoint->g, firstPoint->b);
-    glVertex2f(firstPoint->x, firstPoint->y);
+void drawLandmark() {
+    glBegin(GL_LINES);
+    glColor3ub(255, 0, 0);
+    glVertex2f(-1, 0);
+    glVertex2f(1, 0);
+    glColor3ub(0, 255, 0);
+    glVertex2f(0, -1);
+    glVertex2f(0, 1);
+    glEnd();
 }
 
-void deletePoints(PointList* list) {
-    while (*list != NULL) {
-        Point* nextPoint = (*list)->next;
-        free(*list);
-        *list = nextPoint;
+/*
+ contour : 0 = forme pleine, autre = taille du contour
+ */
+void drawCircle(int contour) {
+    if (contour == 0) {
+        glBegin(GL_POLYGON);
+    } else {
+        glLineWidth(contour);
+        glBegin(GL_LINE_STRIP);
     }
+    glColor3ub(255, 0, 0);
+
+    for (int i = 0; i <= CERCLE_LIGNES; i++) {
+        glVertex2f(0.5 * cos(2 * M_PI * i / CERCLE_LIGNES), 0.5 * sin(2 * M_PI * i / CERCLE_LIGNES));
+    }
+
+    glEnd();
 }
 
 int main(int argc, char** argv) {
-
-    PointList points = NULL;
 
     /* Initialisation de la SDL */
     if (-1 == SDL_Init(SDL_INIT_VIDEO)) {
@@ -93,11 +95,11 @@ int main(int argc, char** argv) {
         glClearColor(1, 1, 1, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (points != NULL) {
-            glBegin(GL_LINE_STRIP);
-            drawPoints(points);
-            glEnd();
-        }
+
+
+        drawLandmark();
+        drawSquare(5);
+        drawCircle(2);
 
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
         SDL_GL_SwapBuffers();
@@ -113,9 +115,14 @@ int main(int argc, char** argv) {
                 break;
             }
             switch (e.type) {
-                case SDL_MOUSEBUTTONUP:
-                    addPointToList(allocPoint(-1 + 2. * e.button.x / WINDOW_WIDTH, -(-1 + 2. * e.button.y / WINDOW_HEIGHT), 0, 0, 0), &points);
-
+                case SDL_VIDEORESIZE:
+                    WINDOW_WIDTH = e.resize.w;
+                    WINDOW_HEIGHT = e.resize.h;
+                    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    glMatrixMode(GL_PROJECTION);
+                    glLoadIdentity();
+                    gluOrtho2D(-1., 1., -1., 1.);
+                    SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE); /* FIX ME - Écran en partie noir pendant le redimensionnement */
                     break;
                 case SDL_KEYUP:
                     switch (e.key.keysym.sym) {
@@ -139,8 +146,6 @@ int main(int argc, char** argv) {
             SDL_Delay(FRAMERATE_MILLISECONDS - elapsedTime);
         }
     }
-
-    deletePoints(&points);
 
     /* Liberation des ressources associées à la SDL */
     SDL_Quit();
