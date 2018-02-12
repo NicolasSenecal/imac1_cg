@@ -174,8 +174,8 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    /* Désactivation du double buffering */
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
+    /* Désactivation du double buffering 
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);*/
 
     /* Ouverture d'une fenêtre et création d'un contexte OpenGL */
     if (NULL == SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE)) {
