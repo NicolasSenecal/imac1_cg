@@ -44,11 +44,15 @@ void addPointToList(Point* point, PointList* list) {
 }
 
 void drawPoints(PointList list) {
+    Point* firstPoint = list;
     while (list != NULL) {
         glColor3ub(list->r, list->g, list->b);
         glVertex2f(list->x, list->y);
         list = list->next;
     }
+
+    glColor3ub(firstPoint->r, firstPoint->g, firstPoint->b);
+    glVertex2f(firstPoint->x, firstPoint->y);
 }
 
 void deletePoints(PointList* list) {
@@ -69,8 +73,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    /* Désactivation du double buffering */
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
+
 
     /* Ouverture d'une fenêtre et création d'un contexte OpenGL */
     if (NULL == SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE)) {
