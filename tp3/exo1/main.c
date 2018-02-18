@@ -16,8 +16,8 @@ static const unsigned int BIT_PER_PIXEL = 32;
 /* Nombre de polygones d'un cercle */
 static const unsigned int CERCLE_LIGNES = 50;
 
-static const float SCALE_X = 10.;
-static const float SCALE_Y = 8.0;
+static const float SCALE_X = 100.;
+static const float SCALE_Y = 80.;
 
 /* Nombre minimal de millisecondes separant le rendu de deux images */
 static const Uint32 FRAMERATE_MILLISECONDS = 1000 / 60;
@@ -42,8 +42,8 @@ void drawSquare(float contour, int r, int v, int b) {
 }
 
 void drawLandmark() {
-    int i;
-    float gradSize = 0.1;
+    float i;
+    float gradSize = 0.25;
     glBegin(GL_LINES);
     glColor3ub(255, 0, 0);
     glVertex2f(-SCALE_X, 0);
@@ -88,22 +88,45 @@ void drawCircle(float contour, int r, int v, int b) {
 void drawRoundedSquare(float contour, float cornerRadius, int r, int v, int b) {
     int i, j;
     glPushMatrix();
-    glScalef(1. - 2 * cornerRadius, 1, 0);
-    drawSquare(contour, r, v, b);
+    /**/glScalef(1. - 2 * cornerRadius, 1, 0);
+    /**/drawSquare(contour, r, v, b);
     glPopMatrix();
     glPushMatrix();
-    glScalef(1, 1 - 2 * cornerRadius, 0);
-    drawSquare(contour, r, v, b);
+    /**/glScalef(1, 1 - 2 * cornerRadius, 0);
+    /**/drawSquare(contour, r, v, b);
     glPopMatrix();
     for (i = -1; i <= 1; i += 2) {
         for (j = -1; j <= 1; j += 2) {
             glPushMatrix();
-            glTranslatef(i*(0.5 - cornerRadius), j*(0.5 - cornerRadius), 0);
-            glScalef(2 * cornerRadius, 2 * cornerRadius, 0);
-            drawCircle(contour, r, v, b);
+            /**/glTranslatef(i * (0.5 - cornerRadius), j * (0.5 - cornerRadius), 0);
+            /**/glScalef(2 * cornerRadius, 2 * cornerRadius, 0);
+            /**/drawCircle(contour, r, v, b);
             glPopMatrix();
         }
     }
+}
+
+void drawFirstArm(float contour, int r, int v, int b) {
+    glPushMatrix();
+    /**/glLineWidth(0.5);
+    /**/glBegin(GL_LINES);
+    /**/glColor3ub(r, v, b);
+    /**/glVertex2f(-30, 20);
+    /**/glVertex2f(30, 10);
+    /**/glVertex2f(30, -10);
+    /**/glVertex2f(-30, -20);
+    /**/glEnd();
+    glPopMatrix();
+    glPushMatrix();
+    /**/glTranslatef(-30, 0, 0);
+    /**/glScalef(20 * 2, 20 * 2, 0);
+    /**/drawCircle(contour, r, v, b);
+    glPopMatrix();
+    glPushMatrix();
+    /**/glTranslatef(30, 0, 0);
+    /**/glScalef(10 * 2, 10 * 2, 0);
+    /**/drawCircle(contour, r, v, b);
+    glPopMatrix();
 }
 
 /*
@@ -146,12 +169,15 @@ int main(int argc, char** argv) {
         glLoadIdentity();
         glScalef(1. / SCALE_X, 1. / SCALE_Y, 0);
 
-        drawLandmark();
-        glPushMatrix();
-        glScalef(5, 5, 0);
-        drawRoundedSquare(0, 0.1, 0, 0, 0);
-        glPopMatrix();
 
+        /* glPushMatrix();
+         glScalef(30, 30, 0);
+         drawRoundedSquare(0, 0.1, 0, 0, 0);
+         glPopMatrix();*/
+
+
+        drawFirstArm(0.2, 0, 0, 0);
+        drawLandmark();
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
         SDL_GL_SwapBuffers();
 
