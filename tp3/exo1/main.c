@@ -133,16 +133,33 @@ void drawSecondArm(float contour, int r, int v, int b) {
     glPushMatrix();
     /**/glTranslatef(-45 / 2, 0, 0);
     /**/glScalef(10, 10, 0);
-    /**/drawRoundedSquare(0, 0.1, r+55, v+55, b+55);
+    /**/drawRoundedSquare(0, 0.1, r + 55, v + 55, b + 55);
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(45 / 2, 0, 0);
     /**/glScalef(10, 10, 0);
-    /**/drawRoundedSquare(0, 0.1, r+55, v+55, b+55);
+    /**/drawRoundedSquare(0, 0.1, r + 55, v + 55, b + 55);
     glPopMatrix();
     glPushMatrix();
     /**/glScalef(46, 6, 0);
     /**/drawSquare(0, r, v, b);
+    glPopMatrix();
+}
+
+void drawThirdArm(float contour, int r, int v, int b) {
+    glPushMatrix();
+    /**/glTranslatef(-18, 0, 0);
+    /**/glScalef(6, 6, 0);
+    /**/drawRoundedSquare(0, 0.1, r + 55, v + 55, b + 55);
+    glPopMatrix();
+    glPushMatrix();
+    /**/glScalef(40, 4, 0);
+    /**/drawSquare(contour, r, v, b);
+    glPopMatrix();
+    glPushMatrix();
+    /**/glTranslatef(20, 0, 0);
+    /**/glScalef(8, 8, 0);
+    /**/drawCircle(contour, r, v, b);
     glPopMatrix();
 }
 
@@ -189,8 +206,9 @@ int main(int argc, char** argv) {
 
         //drawFirstArm(0.2, 0, 0, 0);
         //drawSecondArm(0.2, 0, 0, 0);
-        
-        
+        //drawThirdArm(0, 0, 0, 0);
+
+
         drawLandmark();
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
         SDL_GL_SwapBuffers();
