@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 /* Dimensions de la fenêtre */
 static unsigned int WINDOW_WIDTH = 800;
@@ -84,13 +85,23 @@ void drawCircle(float contour, int r, int v, int b) {
     glEnd();
 }
 
+/*
+ *  Convertie un point en px de la fenetre en coordonnées du plan
+ */
+float convertCoordonnees(float pos, char type) {
+    if (type == 'x') return (SCALE_X * (-1 + 2. * pos / WINDOW_WIDTH));
+    else return (-SCALE_Y * (-1 + 2. * pos / WINDOW_HEIGHT));
+}
+
 int main(int argc, char** argv) {
 
     float posXjaune = 0.;
     float posYjaune = 0.;
     float angleJaune = 0.;
-    int initialDragMouseX = 0;
-    int initialDragMouseY = 0;
+    int clickX = 0;
+    int clickY = 0;
+    int cursY = 0;
+    int cursX = 0;
 
     /* Initialisation de la SDL */
     if (-1 == SDL_Init(SDL_INIT_VIDEO)) {
@@ -151,7 +162,7 @@ int main(int argc, char** argv) {
         glPushMatrix();
 
         glTranslatef(posXjaune, posYjaune, 0);
-        glRotatef(angleJaune, 0.0, 0.0, 1.0);
+        glRotatef(-angleJaune, 0.0, 0.0, 1.0);
         drawSquare(0, 245, 255, 14);
 
         glPopMatrix();
@@ -189,20 +200,22 @@ int main(int argc, char** argv) {
                     }
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    if (e.button.button == SDL_BUTTON_RIGHT) {
-                        posXjaune = SCALE_X * (-1 + 2. * e.button.x / WINDOW_WIDTH);
-                        posYjaune = -SCALE_Y * (-1 + 2. * e.button.y / WINDOW_HEIGHT);
+                    if (e.button.button == SDL_BUTTON_LEFT) {
+                        posXjaune = convertCoordonnees(e.button.x, 'x');
+                        posYjaune = convertCoordonnees(e.button.y, 'y');
                     }
                     break;
                 case SDL_MOUSEMOTION:
-                    if (e.button.button == SDL_BUTTON_LEFT) {
-                        angleJaune -= e.button.x - initialDragMouseX;
+                    if (e.button.button == SDL_BUTTON_RIGHT + 1) { /* FIXE ME : +1 car bug de la sdl  (décalage de 1 en mousemotion)*/
+                        cursX = e.button.x;
+                        cursY = e.button.y;
+                        angleJaune = sqrt(pow(cursX - clickX, 2) + pow(cursY - clickY, 2));
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    if (e.button.button == SDL_BUTTON_LEFT) {
-                        initialDragMouseX = e.button.x;
-                        initialDragMouseY = e.button.y;
+                    if (e.button.button == SDL_BUTTON_RIGHT) {
+                        clickX = e.button.x;
+                        clickY =e.button.y;
                     }
                     break;
                 default:
