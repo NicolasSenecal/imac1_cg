@@ -16,8 +16,8 @@ static const unsigned int BIT_PER_PIXEL = 32;
 /* Nombre de polygones d'un cercle */
 static const unsigned int CERCLE_LIGNES = 50;
 
-static const float SCALE_X = 140.;
-static const float SCALE_Y = 120.;
+static const float SCALE_X = 180.;
+static const float SCALE_Y = 160.;
 
 /* Nombre minimal de millisecondes separant le rendu de deux images */
 static const Uint32 FRAMERATE_MILLISECONDS = 1000 / 60;
@@ -44,6 +44,7 @@ void drawSquare(float contour, int r, int v, int b) {
 void drawLandmark() {
     float i;
     float gradSize = 0.25;
+    glLineWidth(0.1);
     glBegin(GL_LINES);
     glColor3ub(255, 0, 0);
     glVertex2f(-SCALE_X, 0);
@@ -115,16 +116,26 @@ void drawFirstArm(float contour, int r, int v, int b) {
     /**/glVertex2f(60, -10);
     /**/glVertex2f(0, -20);
     /**/glEnd();
+    /**/glLineWidth(contour);
+    /**/glBegin(GL_LINE_STRIP);
+    /**/glColor3ub(0, 0, 0);
+    /**/glVertex2f(0, 20);
+    /**/glVertex2f(60, 10);
+    /**/glVertex2f(60, -10);
+    /**/glVertex2f(0, -20);
+    /**/glEnd();
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(0, 0, 0);
     /**/glScalef(20 * 2, 20 * 2, 0);
-    /**/drawCircle(contour, r, v, b);
+    /**/drawCircle(0, r, v, b);
+    /**/drawCircle(contour, 0, 0, 0);
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(60, 0, 0);
     /**/glScalef(10 * 2, 10 * 2, 0);
-    /**/drawCircle(contour, r, v, b);
+    /**/drawCircle(0, r, v, b);
+    /**/drawCircle(contour, 0, 0, 0);
     glPopMatrix();
 }
 
@@ -132,17 +143,20 @@ void drawSecondArm(float contour, int r, int v, int b) {
     glPushMatrix();
     /**/glTranslatef(0, 0, 0);
     /**/glScalef(10, 10, 0);
-    /**/drawRoundedSquare(0, 0.1, r + 55, v + 55, b + 55);
+    /**/drawRoundedSquare(0, 0.1, r, v, b);
+    /**/drawRoundedSquare(contour, 0.1, 0, 0, 0);
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(40, 0, 0);
     /**/glScalef(10, 10, 0);
-    /**/drawRoundedSquare(0, 0.1, r + 55, v + 55, b + 55);
+    /**/drawRoundedSquare(0, 0.1, r, v, b);
+    /**/drawRoundedSquare(contour, 0.1, 0, 0, 0);
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(20, 0, 0);
     /**/glScalef(46, 6, 0);
     /**/drawSquare(0, r, v, b);
+    /**/drawSquare(contour, 0, 0, 0);
     glPopMatrix();
 }
 
@@ -150,36 +164,64 @@ void drawThirdArm(float contour, int r, int v, int b) {
     glPushMatrix();
     /**/glTranslatef(0, 0, 0);
     /**/glScalef(6, 6, 0);
-    /**/drawRoundedSquare(0, 0.1, r - 55, v - 55, b - 55);
+    /**/drawRoundedSquare(0, 0.1, r, v, b);
+    /**/drawRoundedSquare(contour, 0.1, 0, 0, 0);
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(19.5, 0, 0);
     /**/glScalef(40, 4, 0);
-    /**/drawSquare(contour, r, v, b);
+    /**/drawSquare(0, r, v, b);
+    /**/drawSquare(contour, 0, 0, 0);
     glPopMatrix();
     glPushMatrix();
     /**/glTranslatef(39.5, 0, 0);
     /**/glScalef(8, 8, 0);
-    /**/drawCircle(contour, r, v, b);
+    /**/drawCircle(0, r, v, b);
+    /**/drawCircle(contour, 0, 0, 0);
     glPopMatrix();
 }
 
-void drawArm(float alpha, float beta, float gamma) {
+void drawArm(float alpha, float beta, float gamma[], int nbGamma) {
     glPushMatrix();
 
-    glTranslatef(-80, 0, 0);
+    glTranslatef(0, 0, 0);
     glRotatef(alpha, 0.0, 0.0, 1.0);
-    drawFirstArm(0.1, 169, 234, 254);
+    drawFirstArm(2, 169, 234, 254);
 
     glTranslatef(60, 0, 0);
     glRotatef(beta, 0.0, 0.0, 1.0);
-    drawSecondArm(0.1, 169, 234, 254);
+    drawSecondArm(2, 169, 234, 254);
 
     glTranslatef(40, 0, 0);
-    glRotatef(gamma, 0.0, 0.0, 1.0);
-    drawThirdArm(0.1, 169, 234, 254);
+    for (int i = 0; i < nbGamma; i++) {
+        glPushMatrix();
+        glRotatef(gamma[i], 0.0, 0.0, 1.0);
+        drawThirdArm(2, 169, 234, 254);
+        glPopMatrix();
+    }
 
     glPopMatrix();
+}
+
+void showViewport() {
+
+    /* Ouverture d'une fenêtre et création d'un contexte OpenGL */
+    if (NULL == SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE)) {
+        fprintf(stderr, "Impossible d'ouvrir la fenetre. Fin du programme.\n");
+        exit(0);
+    }
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-SCALE_X, SCALE_X, -SCALE_Y, SCALE_Y);
+}
+
+int rand_a_b(int a, int b) {
+    return rand() % (b - a) + a;
+}
+
+double frand_a_b(double a, double b) {
+    return ( rand() / (double) RAND_MAX) * (b - a) + a;
 }
 
 /*
@@ -191,6 +233,10 @@ float convertCoordonnees(float pos, char type) {
 }
 
 int main(int argc, char** argv) {
+    float alpha = 45;
+    float beta = -10;
+    float gamma[] = {35, 12, 0, 89};
+    float nbGamma = 4;
 
     /* Initialisation de la SDL */
     if (-1 == SDL_Init(SDL_INIT_VIDEO)) {
@@ -198,20 +244,13 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    srand(time(NULL)); // initialisation de rand
 
-    /* Ouverture d'une fenêtre et création d'un contexte OpenGL */
-    if (NULL == SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE)) {
-        fprintf(stderr, "Impossible d'ouvrir la fenetre. Fin du programme.\n");
-        return EXIT_FAILURE;
-    }
+    showViewport();
 
     /* Titre de la fenêtre */
     SDL_WM_SetCaption("TP03", NULL);
-    
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-SCALE_X, SCALE_X, -SCALE_Y, SCALE_Y);
+
 
     /* Boucle d'affichage */
     int loop = 1;
@@ -225,12 +264,19 @@ int main(int argc, char** argv) {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-
+        //drawRoundedSquare(1, 0.2, 0, 0, 0);
         //drawFirstArm(0.2, 0, 0, 0);
         //drawSecondArm(0.2, 0, 0, 0);
         // drawThirdArm(0.05, 0, 0, 0);
-        drawArm(45, -10, 35);
-        drawLandmark();
+        drawArm(alpha, beta, gamma, nbGamma);
+
+        alpha += 1;
+        beta += 1;
+
+        for (int i = 0; i < nbGamma; i++) {
+            gamma[i] += frand_a_b(0, 5);
+        }
+        //drawLandmark();
 
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
         SDL_GL_SwapBuffers();
@@ -249,11 +295,7 @@ int main(int argc, char** argv) {
                 case SDL_VIDEORESIZE:
                     WINDOW_WIDTH = e.resize.w;
                     WINDOW_HEIGHT = e.resize.h;
-                    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-                    glMatrixMode(GL_PROJECTION);
-                    glLoadIdentity();
-                    gluOrtho2D(-1., 1., -1., 1.);
-                    SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_RESIZABLE); /* FIX ME - Écran en partie noir pendant le redimensionnement */
+                    showViewport();
                     break;
                 case SDL_KEYUP:
                     switch (e.key.keysym.sym) {
