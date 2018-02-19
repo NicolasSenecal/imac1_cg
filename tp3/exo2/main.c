@@ -207,7 +207,11 @@ int main(int argc, char** argv) {
 
     /* Titre de la fenêtre */
     SDL_WM_SetCaption("TP03", NULL);
-
+    
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-SCALE_X, SCALE_X, -SCALE_Y, SCALE_Y);
 
     /* Boucle d'affichage */
     int loop = 1;
@@ -220,14 +224,13 @@ int main(int argc, char** argv) {
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glScalef(1. / SCALE_X, 1. / SCALE_Y, 0);
 
 
         //drawFirstArm(0.2, 0, 0, 0);
         //drawSecondArm(0.2, 0, 0, 0);
         // drawThirdArm(0.05, 0, 0, 0);
         drawArm(45, -10, 35);
-        
+        drawLandmark();
 
         /* Echange du front et du back buffer : mise à jour de la fenêtre */
         SDL_GL_SwapBuffers();
