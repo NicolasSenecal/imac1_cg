@@ -119,6 +119,10 @@ int main(int argc, char** argv) {
     /* Titre de la fenêtre */
     SDL_WM_SetCaption("Paint", NULL);
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-SCALE_X, SCALE_X, -SCALE_Y, SCALE_Y);
+
 
     /* Boucle d'affichage */
     int loop = 1;
@@ -131,7 +135,7 @@ int main(int argc, char** argv) {
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glScalef(1. / SCALE_X, 1. / SCALE_Y, 0);
+
         glPushMatrix();
 
         drawLandmark();
@@ -215,7 +219,7 @@ int main(int argc, char** argv) {
                 case SDL_MOUSEBUTTONDOWN:
                     if (e.button.button == SDL_BUTTON_RIGHT) {
                         clickX = e.button.x;
-                        clickY =e.button.y;
+                        clickY = e.button.y;
                     }
                     break;
                 default:
