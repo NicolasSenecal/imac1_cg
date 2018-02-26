@@ -63,47 +63,67 @@ int main(int argc, char** argv) {
   // TODO: Libération des données CPU
   SDL_FreeSurface(logoJpg);
 
-  /* Boucle de dessin (à décommenter pour l'exercice 3)
+  // Boucle de dessin (à décommenter pour l'exercice 3)
   int loop = 1;
-  glClearColor(0.1, 0.1, 0.1 ,1.0);
-  while(loop) {
+  glClearColor(0.1, 0.1, 0.1, 1.0);
+  while (loop) {
 
-      Uint32 startTime = SDL_GetTicks();
+    Uint32 startTime = SDL_GetTicks();
 
-      // TODO: Code de dessin
+    // TODO: Code de dessin
 
-      glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-      // ...
+    glEnable(GL_TEXTURE_2D); // On précise qu’on veut activer la fonctionnalité de texturing
+    glBindTexture(GL_TEXTURE_2D, textureID); // On bind la texture pour pouvoir l’utiliser
 
-      // Fin du code de dessin
+    glPushMatrix();
+    glScalef(0.5, 0.5, 0);
 
-      SDL_Event e;
-      while(SDL_PollEvent(&e)) {
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex2f(-0.5, 0.5);
+    glTexCoord2f(1, 0);
+    glVertex2f(0.5, 0.5);
+    glTexCoord2f(1, 1);
+    glVertex2f(0.5, -0.5);
+    glTexCoord2f(0, 1);
+    glVertex2f(-0.5, -0.5);
+    glVertex2f(-0.5, 0.5);
+    glEnd();
+    
+    glPopMatrix();
+    
+    glDisable(GL_TEXTURE_2D); // On désactive le sampling de texture
+    glBindTexture(GL_TEXTURE_2D, 0); // On débind la texture
 
-          switch(e.type) {
+    // Fin du code de dessin
 
-              case SDL_QUIT:
-                  loop = 0;
-                  break;
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
 
-              case SDL_VIDEORESIZE:
-                  WINDOW_WIDTH = e.resize.w;
-                  WINDOW_HEIGHT = e.resize.h;
-                  resizeViewport();
+      switch (e.type) {
 
-              default:
-                  break;
-          }
+        case SDL_QUIT:
+          loop = 0;
+          break;
+
+        case SDL_VIDEORESIZE:
+          WINDOW_WIDTH = e.resize.w;
+          WINDOW_HEIGHT = e.resize.h;
+          resizeViewport();
+
+        default:
+          break;
       }
+    }
 
-      SDL_GL_SwapBuffers();
-      Uint32 elapsedTime = SDL_GetTicks() - startTime;
-      if(elapsedTime < FRAMERATE_MILLISECONDS) {
-          SDL_Delay(FRAMERATE_MILLISECONDS - elapsedTime);
-      }
+    SDL_GL_SwapBuffers();
+    Uint32 elapsedTime = SDL_GetTicks() - startTime;
+    if (elapsedTime < FRAMERATE_MILLISECONDS) {
+      SDL_Delay(FRAMERATE_MILLISECONDS - elapsedTime);
+    }
   }
-   */
 
   // TODO: Libération des données GPU
   glDeleteTextures(1, &textureID);
