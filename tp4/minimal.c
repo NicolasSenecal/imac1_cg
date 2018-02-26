@@ -36,14 +36,32 @@ int main(int argc, char** argv) {
   resizeViewport();
 
   // TODO: Chargement et traitement de la texture
-  SDL_Surface* logoJpg = IMG_Load("logo_imac_400x400.jpg");
+  SDL_Surface *logoJpg = IMG_Load("logo_imac_400x400.jpg");
   if (!logoJpg) {
     printf("Oups... something went wrong\n");
     exit(1);
   }
 
+  GLuint textureID;
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  glTexImage2D(
+          GL_TEXTURE_2D,
+          0,
+          GL_RGB,
+          logoJpg->w,
+          logoJpg->h,
+          0,
+          GL_RGB,
+          GL_UNSIGNED_BYTE,
+          logoJpg->pixels);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
   // TODO: Libération des données CPU
-  // ...
+  SDL_FreeSurface(logoJpg);
 
   /* Boucle de dessin (à décommenter pour l'exercice 3)
   int loop = 1;
@@ -88,7 +106,7 @@ int main(int argc, char** argv) {
    */
 
   // TODO: Libération des données GPU
-  SDL_FreeSurface(logoJpg);
+  glDeleteTextures(1, &textureID);
 
   // Liberation des ressources associées à la SDL
   SDL_Quit();
