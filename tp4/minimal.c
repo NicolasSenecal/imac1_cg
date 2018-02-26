@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
   resizeViewport();
 
   // TODO: Chargement et traitement de la texture
-  SDL_Surface *logoJpg = IMG_Load("logo_imac_400x400.jpg");
+  SDL_Surface *logoJpg = IMG_Load(filename);
   if (!logoJpg) {
     printf("Oups... something went wrong\n");
     exit(1);
