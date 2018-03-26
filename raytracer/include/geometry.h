@@ -9,9 +9,7 @@
 #include <stdio.h>
 
 typedef struct {
-  float x;
-  float y;
-  float z;
+  float x, y, z;
 } Vec3, Point3D, Vector3D;
 
 /*
