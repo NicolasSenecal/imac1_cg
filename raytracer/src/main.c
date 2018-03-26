@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "geometry.h"
+#include "raytracer.h"
+#include "shape.h"
 
-int main(int argc, char** argv) {
-
+/* Fonction provisoire de test */
+void function testGeometry() {
 
   printf("\n pointPlusVector : (0, 0, 0) + (1, 2, 0) = ");
   printVector3D(pointPlusVector(pointXYZ(0, 0, 0), vectorXYZ(1, 2, 0)));
@@ -46,7 +48,11 @@ int main(int argc, char** argv) {
 
   printf("\n normalize((0, 0, 0)) = ");
   printVector3D(normalize(vectorXYZ(0, 0, 0)));
+}
 
+int main(int argc, char** argv) {
+  testGeometry();
+  
   printf("\n ");
   return EXIT_SUCCESS;
 }
