@@ -4,7 +4,7 @@
  */
 #include "shape.h"
 
-Sphere createSphere(Point3D o, float r, Color3d color) {
+Sphere createSphere(Point3D o, float r, Color3f color) {
   Sphere s;
   s.o = o;
   s.r = r;

@@ -5,7 +5,8 @@
 
 #ifndef SHAPE_H
 #define SHAPE_H
-#include "color.h"
+#include "geometry.h"
+#include "colors.h"
 
 typedef struct {
   Point3D o; /* Position de l'origine du cercle */
@@ -22,7 +23,7 @@ typedef struct {
 /*
  * Construit la sphere d'origine <o>, de rayon <r> et de couleur <color>
  */
-Sphere createSphere(Point3D o, float r, Color3d color);
+Sphere createSphere(Point3D o, float r, Color3f color);
 
 /*
  * Construit un cube de point minimum <min>, de point maximum <max> (les deux points de sa diagonale) et de sa couleur <color>
