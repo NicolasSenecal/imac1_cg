@@ -1,100 +1,122 @@
-/*
- * raytracer.c
- * Structures et fonctions utilitaires pour manipuler les rayons
- */
+#include <stdlib.h>
+#include <stdio.h>
+#include <SDL/SDL.h>
+#include <math.h>
+
 #include "raytracer.h"
+#include "geometry.h"
+#include "sdl_tools.h"
 
-Ray createRay(Point3D o, Vector3D d) {
-  Ray r;
-  r.o = o;
-  r.d = d;
-  return r;
-}
-
-Intersection createIntersection(Point3D p, Color3f color) {
-  Intersection i;
-  i.p = p;
-  i.color = color;
-  return i;
-}
-
-int intersectsSphere(Ray r, Sphere s, Intersection* i) {
-  /* Équation du second degré */
-  float a = 1; /* on normalise la direction du rayon (a=|d|²=1) */
-  float b = dot(multVector(r.o, 2.), pointPlusVector(multVector(s.o, -1.), r.d));
-  float c = pow(norm(r.o), 2) + pow(norm(s.o), 2) - 2 * dot(s.o, r.o);
-  float delta = pow(b, 2) - 4. * a * c;
-  float t = -1.;
-  float t1 = 0.;
-  float t2 = 0.;
-
-  if (delta < 0.) {
-    return 0;
-  } else if (delta == 0.) {
-
-    t = -b / (2. * a);
-  } else {
-          printf("delta > 0");
-    t1 = (-b - sqrt(delta)) / (2. * a);
-    t2 = (-b + sqrt(delta)) / (2. * a);
-    if (t1 < t2 && t1 > 0)
-      t = t1;
-    else if (t1 > t2 && t2 > 0)
-      t = t2;
-    else
-      t = t1;
-  }
-
-  if (t < 0)
-    return 0;
-  
-  *i = createIntersection(pointPlusVector(r.o, multVector(r.d, t)), s.color);
-  return 1;
+Ray createRay(Point3D origin, Vector3D direction) {
+    Ray ray;
+    ray.origin = origin;
+    ray.direction = normalize(direction);
+    return ray;
 }
 
 Scene createScene() {
-  Scene scene;
-  scene.sphereTabSize = 0;
-  scene.cubeTabSize = 0;
-  return scene;
+    Scene scene;
+    scene.sphereCount = 0;
+    return scene;
 }
 
-int addSphereToScene(Scene* scene, Sphere sphere) {
-  if (scene->sphereTabSize > SCENE_SHAPE_TAB_SIZE)
+Point3D getPointAtParameter(Ray ray, float t) {
+    return pointPlusVector(ray.origin, multVector(ray.direction, t));
+}
+
+void addSphereToScene(Scene* scene, Sphere sphere) {
+    if (scene->sphereCount >= 10) {
+        printf("Scene sphere list is empty\n");
+    }
+    else {
+        scene->spheres[scene->sphereCount] = sphere;
+        scene->sphereCount += 1;
+    }
+}
+
+int intersectsSphere(Sphere sphere, Ray ray, Intersection* intersection) {
+
+    // define quadratic function coefficients
+    float a = 1; // Works if the ray direction vector is normalized ! else, use norm(ray.direction) * norm(ray.direction);
+    Vector3D SO = createVectorFromPoints(sphere.center, ray.origin); // O = ray origin, S = sphere position
+    float b = 2.0 * dot(ray.direction, SO);
+    float c = norm(SO) * norm(SO) - sphere.radius * sphere.radius;
+
+    float delta = b * b - 4 * a * c;
+    if (delta < 0) {
+        return 0;
+    }
+    else if (delta == 0) {
+        float t = - b / (2 * a);
+        if (t < 0) {
+            return 0;
+        }
+        intersection->position = getPointAtParameter(ray, t);
+        return 1;
+    }
+    else if (delta > 0) {
+        float t0 = (-b - sqrt(delta)) / (2 * a);
+        float t1 = (-b + sqrt(delta)) / (2 * a);
+        float t = t0;
+        if (t0 < 0 && t1 < 0) {
+            return 0;
+        }
+        if (t0 < 0 && t1 >=0) {
+            t = t1;
+        }
+        else if (t1 < 0 && t0 >= 0) {
+            t = t0;
+        }
+        else if (t0 >= 0 && t1 >= 0) {
+            if (t0 <= t1) {
+                t = t0;
+            }
+            else {
+                t = t1;
+            }
+        }
+        intersection->position = getPointAtParameter(ray, t);
+        intersection->color = sphere.color;
+        return 1;
+    }
     return 0;
-  scene->sphere[scene->sphereTabSize] = sphere;
-  scene->sphereTabSize++;
-  return 1;
 }
 
-int throwRayOnScene(Ray ray, const Scene* scene, Intersection* intersection) {
-  int i;
-  Intersection t;
-  float normMin = 0.;
-  float normTmp = 0.;
-  for (i = 0; i < scene->sphereTabSize; i++) {
-    if (intersectsSphere(ray, scene->sphere[i], &t)) {
-      normTmp = norm(vector(ray.o, t.p));
-      if (normMin == 0. || normTmp < normMin) {
-        *intersection = t;
-        normMin = normTmp;
-      }
+int throwRayThroughScene(Scene scene, Ray ray, Intersection* intersection) {
+
+    Intersection newIntersection;
+    int hasAlreadyIntersected = 0;
+
+    for (int i = 0; i < scene.sphereCount; i++) {
+        if (intersectsSphere(scene.spheres[i], ray, &newIntersection)) {
+            if (hasAlreadyIntersected == 0) {
+                intersection->position = newIntersection.position;
+                intersection->color = newIntersection.color;
+                hasAlreadyIntersected = 1;
+            }
+            else {
+                float currentDistance = norm(createVectorFromPoints(ray.origin, intersection->position));
+                float newDistance = norm(createVectorFromPoints(ray.origin, newIntersection.position));
+                if (newDistance < currentDistance) {
+                    intersection->position = newIntersection.position;
+                    intersection->color = newIntersection.color;
+                }
+            }
+        }
     }
-  }
-  return (normMin != 0);
+    return hasAlreadyIntersected;
 }
 
-void simpleRaytracing(const Scene* scene, SDL_Surface* framebuffer) {
-  int x, y;
-  Intersection t;
-  Ray r;
-  r.o = pointXYZ(0, 0, 0);
-  for (y = 0; y < framebuffer->h; y++) {
-    for (x = 0; x < framebuffer->w; x++) {
-      r.d = vectorXYZ(-1. + 2. * (x / framebuffer->w), 1. - 2. * (y / framebuffer->h), -1.);
-      if (throwRayOnScene(r, scene, &t)) {
-        PutPixel(framebuffer, x, y, SDL_MapRGB(framebuffer->format, t.color.r * 255, t.color.g * 255, t.color.b * 255));
-      }
+void simpleRaytracing(Scene scene, SDL_Surface* framebuffer) {
+    Intersection intersection;
+    for (int i = 0; i < framebuffer->w; i++) {
+        float x = -1.0 + 2.0 * (i / (float)(framebuffer->w - 1));
+        for(int j = 0; j < framebuffer->h; j++) {
+            float y = 1.0 - 2.0 * (j / (float)(framebuffer->h - 1));
+            Ray r = createRay(createPoint(0, 0, 0), createVectorXYZ(x, y, -1));
+            if (throwRayThroughScene(scene, r, &intersection)) {
+                PutPixel(framebuffer, i, j, SDL_MapRGB(framebuffer->format, intersection.color.r * 255.0, intersection.color.g * 255.0, intersection.color.b * 255.0));
+            }
+        }
     }
-  }
 }
