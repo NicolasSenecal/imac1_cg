@@ -2,9 +2,9 @@
 #define COLORS_H
 
 typedef struct Color3f {
-    float r;
-    float g;
-    float b;
+  float r;
+  float g;
+  float b;
 } Color3f;
 
 Color3f createColor(float r, float g, float b);
@@ -16,5 +16,6 @@ Color3f DivColors(Color3f c1, Color3f c2);
 
 Color3f MultColor(Color3f c, float a);
 Color3f DivColor(Color3f c, float a);
+Color3f clampColor(Color3f c);
 
 #endif
