@@ -75,7 +75,3 @@ Vector3D normalize(Vector3D v) {
     v.z /= n;
     return v;
 }
-
-float distance(Point3D p1, Point3D p2) {
-    return norm(createVectorFromPoints(p1, p2));
-}

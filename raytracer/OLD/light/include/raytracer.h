@@ -9,32 +9,32 @@
 #include "shape.h"
 
 typedef struct Ray {
-    Point3D origin;
-    Vector3D direction;
+  Point3D origin;
+  Vector3D direction;
 } Ray;
 
 typedef struct Intersection {
-    Point3D position;
-    Color3f color;
-    Vector3D normal;
+  Point3D position;
+  Color3f color;
+  Vector3D normal;
 } Intersection;
 
 typedef struct Light {
-    Point3D position;
-    Color3f color;
+  Point3D position;
+  Color3f color;
 } Light;
 
 typedef struct Scene {
-    Sphere spheres[10];
-    int sphereCount;
-    Light lights[10];
-    int lightCount;
+  Sphere spheres[10];
+  int sphereCount;
+  Light lights[10];
+  int lightCount;
 } Scene;
 
-
 Ray createRay(Point3D origin, Vector3D direction);
+Light createLight(Point3D position, Color3f color);
 Scene createScene();
-Light createLight();
+
 Point3D getPointAtParameter(Ray ray, float t);
 
 void addSphereToScene(Scene* scene, Sphere sphere);
